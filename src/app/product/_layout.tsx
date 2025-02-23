@@ -15,7 +15,7 @@ const ProductLayout = () => {
         }}/>
       </TouchableOpacity>
     }})}/>
-    <Stack.Screen  name=""/>
+    {/* <Stack.Screen  name=""/> */}
   </Stack>
   )
 }
