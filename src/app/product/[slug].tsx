@@ -14,6 +14,8 @@ const Product = () => {
 
   const {items, addItem, incrementItem, decrementItem} = useCartStore();
 
+  console.log(items);
+
   const cartItem = items.find(item=> item.id === product.id);
 
   const initialQuantity = cartItem ? cartItem.quantity : 1;
