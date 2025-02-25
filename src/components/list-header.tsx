@@ -36,6 +36,20 @@ export const ListHeader = () => {
                     }}
                     </Pressable>
                 </Link>
+                <Link style={styles.cartContainer} href={'/auth'} asChild>
+                    <Pressable>
+                    {({pressed})=>{
+                        return <View style={{position: 'relative'}}>
+                            <FontAwesome 
+                            name="sign-in" 
+                            size={25}
+                            color='gray'
+                            style={{marginRight: 15, opacity: pressed ? 0.5: 1}}
+                            />
+                        </View>
+                    }}
+                    </Pressable>
+                </Link>
                 <TouchableOpacity style={styles.signOutButton}>
                     <FontAwesome name='sign-out' size={25} color='red' />
                 </TouchableOpacity>

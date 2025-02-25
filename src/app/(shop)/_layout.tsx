@@ -37,6 +37,7 @@ const TabsLayout = ()=>{
                             return <TabBarIcon {...props} name="book" />
                         }
                     }} />
+                   
                 </Tabs>
     </SafeAreaView>
 }
