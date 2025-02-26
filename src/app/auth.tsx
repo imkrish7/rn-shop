@@ -2,6 +2,8 @@ import { ImageBackground, StyleSheet, Text, TextInput, TouchableOpacity, View } 
 import { Controller, useForm } from 'react-hook-form'
 import * as zod from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod'
+import { supabase } from '../lib/supabase';
+import { Toast } from 'react-native-toast-notifications';
 
 const authSchema = zod.object({
   email: zod.string().email({message: 'Invalid email address'}),
@@ -18,12 +20,34 @@ const Auth = () => {
     }
   })
 
-  const signin = (data: zod.infer<typeof authSchema>)=>{
+  const signin = async (data: zod.infer<typeof authSchema>)=>{
+
+    const {error} = await supabase.auth.signInWithPassword(data);
+    if(error){
+      alert(error.message)
+    }else{
+      console.log('signedin')
+      Toast.show('Signed in success', {
+        type: 'success',
+        placement: 'top',
+        duration: 1500
+      })
+    }
 
   }
 
-  const signup = (data: zod.infer<typeof authSchema>)=>{
-
+  const signup =async (data: zod.infer<typeof authSchema>)=>{
+    const {error} = await supabase.auth.signUp(data);
+    if(error){
+      alert(error.message)
+    }else{
+      console.log('Signup')
+      Toast.show('Signed up success', {
+        type: 'success',
+        placement: 'top',
+        duration: 1500
+      })
+    }
   }
 
   return (
@@ -44,7 +68,7 @@ const Auth = () => {
               placeholder='Email'
               style={styles.input}
               value={value}
-              onChange={onChange}
+              onChangeText={onChange}
               onBlur={onBlur}
               placeholderTextColor='#aaa'
               autoCapitalize='none'
@@ -65,7 +89,7 @@ const Auth = () => {
               placeholder='******'
               style={styles.input}
               value={value}
-              onChange={onChange}
+              onChangeText={onChange}
               onBlur={onBlur}
               placeholderTextColor='#aaa'
               autoCapitalize='none'
