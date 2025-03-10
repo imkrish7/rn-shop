@@ -4,6 +4,7 @@ import * as zod from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod'
 import { supabase } from '../lib/supabase';
 import { Toast } from 'react-native-toast-notifications';
+import { useRouter } from 'expo-router';
 
 const authSchema = zod.object({
   email: zod.string().email({message: 'Invalid email address'}),
@@ -11,6 +12,7 @@ const authSchema = zod.object({
 })
 
 const Auth = () => {
+  const router = useRouter()
 
   const {control, handleSubmit, formState} = useForm({
     resolver: zodResolver(authSchema),
@@ -26,12 +28,15 @@ const Auth = () => {
     if(error){
       alert(error.message)
     }else{
-      console.log('signedin')
+
       Toast.show('Signed in success', {
         type: 'success',
         placement: 'top',
         duration: 1500
       })
+
+      router.push('/')
+
     }
 
   }
@@ -47,6 +52,7 @@ const Auth = () => {
         placement: 'top',
         duration: 1500
       })
+      router.push('/')
     }
   }
 

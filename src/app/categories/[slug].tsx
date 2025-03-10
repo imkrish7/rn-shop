@@ -1,15 +1,16 @@
-import { StyleSheet, Text, View, Image, FlatList } from 'react-native'
+import { StyleSheet, Text, View, Image, FlatList, ActivityIndicator } from 'react-native'
 import React from 'react'
 import { Redirect, Stack, useLocalSearchParams } from 'expo-router'
-import { CATEGORIES } from '../../../assets/categories';
-import { PRODUCTS } from '../../../assets/products';
 import { ProductListItem } from '../../components/product-list-item';
+import { getCategoryAndProducts } from '../api/api';
 
 const Categories = () => {
   const {slug} = useLocalSearchParams<{slug: string}>();
-  const category = CATEGORIES.find(category=>category.slug == slug);
-  if(!category) return <Redirect href={'/404'} />
-  const products = PRODUCTS.filter(product=> product.category.slug == slug);
+  const { data, error, isLoading } = getCategoryAndProducts(slug);
+  if(isLoading) return <ActivityIndicator />
+  if(!data || error) return <Text>Error: {error?.message}</Text>
+  if(!data.category || !data.products) return <Redirect href={'/404'} />
+  const { category, products} = data;
   return (
     <View style={styles.container
     }>

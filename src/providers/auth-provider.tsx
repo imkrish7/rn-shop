@@ -8,15 +8,25 @@ type AuthData = {
     user: any
 }
 
+type User = {
+    avatar_url: string,
+    created_at: string | null,
+    email: string,
+    id: string,
+    type: string | null
+}
+
 const AuthContext = createContext<AuthData>({
     session: null,
     mounting: true,
     user: null
 });
 
+
+
 export default function AuthProvider({children}: PropsWithChildren){
     const [session, setSession] = useState<Session | null>(null);
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState<User|null>(null);
 
     const [mounting, setMounting] = useState(true);
 
@@ -27,7 +37,7 @@ export default function AuthProvider({children}: PropsWithChildren){
             } = await supabase.auth.getSession();
             setSession(session);
             if(session){
-                const {data: user, error} = await supabase.from('user').select('*').eq('id', session.user.id).single();
+                const {data: user, error} = await supabase.from('users').select('*').eq('id', session.user.id).single();
                 if(error){
                     console.error(error);
                 }else{

@@ -2,10 +2,10 @@ import { StyleSheet, Text, View, Image, Pressable, TouchableOpacity, FlatList } 
 import React from 'react'
 import { Link } from 'expo-router'
 import { FontAwesome } from '@expo/vector-icons'
-import { CATEGORIES } from '../../assets/categories'
 import { useCartStore } from '../store/cart-store'
+import { Tables } from '../types/database.types'
 
-export const ListHeader = () => {
+export const ListHeader = ({categories}: {categories: Tables<'category'>[]}) => {
 
     const { getItemCount } = useCartStore();
   return (
@@ -46,7 +46,7 @@ export const ListHeader = () => {
         </View>
         <View style={styles.categoriesContainer}>
             <Text style={styles.sectionTitle}>Categories</Text>
-            <FlatList data={CATEGORIES} 
+            <FlatList data={categories} 
             renderItem={({item})=>{
                 return <Link asChild href={`/categories/${item.slug}`}>
                     <Pressable style={styles.category}>

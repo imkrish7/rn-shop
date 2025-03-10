@@ -1,26 +1,28 @@
-import { StyleSheet, Text, View, Image, FlatList, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, Image, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native'
 import React, { useState } from 'react'
 import { Redirect, Stack, useLocalSearchParams } from 'expo-router'
 import { useToast } from 'react-native-toast-notifications';
-import { PRODUCTS } from '../../../assets/products';
 import { useCartStore } from '../../store/cart-store';
+import { getProduct } from '../api/api';
 
 const Product = () => {
   const {slug} = useLocalSearchParams<{slug: string}>();
   const toast = useToast();
-  const product = PRODUCTS.find(product => product.slug === slug);
-
-  if(!product) return <Redirect href={'/404'} />
+  const {data: product, error, isLoading} = getProduct(slug);
 
   const {items, addItem, incrementItem, decrementItem} = useCartStore();
 
-  console.log(items);
-
-  const cartItem = items.find(item=> item.id === product.id);
+  const cartItem = items.find(item=> item.id === product?.id);
 
   const initialQuantity = cartItem ? cartItem.quantity : 1;
 
   const [quantity, setQuantity] = useState(initialQuantity);
+
+  if(isLoading) return <ActivityIndicator /> 
+
+  if(error) return <Text>Error: {error.message ||'fetching details'}</Text>
+
+  if(!product) return <Redirect href={'/404'} />
 
   const increaseQuantity = ()=>{
 
@@ -53,9 +55,10 @@ const Product = () => {
       addItem({
         id: product.id,
         title: product.title,
-        image: product.heroImage,
+        heroImage: product.heroImage,
         price: product.price,
-        quantity
+        quantity,
+        maxQuantity: product.maxQuantity
       })
 
       toast.show('Added to Cart', {
@@ -71,7 +74,7 @@ const Product = () => {
   return (
     <View style={styles.container}>
       <Stack.Screen options={{title: product.title}} />
-      <Image source={product.heroImage} style={styles.heroImage} />
+      <Image source={{uri: product.heroImage}} style={styles.heroImage} />
       <View style={{ padding: 16, flex: 1}}>
         <Text style={styles.title}>Slug: {product.slug}</Text>
         <View style={styles.priceContainer}>
@@ -83,7 +86,7 @@ const Product = () => {
           data={product.imagesUrl}
           keyExtractor={(item, index)=> index.toString()}
           renderItem={({item})=>{
-            return <Image source={item} style={styles.image} />
+            return <Image source={{uri: item}} style={styles.image} />
           }}
 
           horizontal
