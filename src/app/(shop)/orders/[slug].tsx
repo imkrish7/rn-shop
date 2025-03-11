@@ -1,29 +1,42 @@
-import { FlatList, StyleSheet, Text, View, Image } from 'react-native'
+import { FlatList, StyleSheet, Text, View, Image, ActivityIndicator } from 'react-native'
 import React from 'react'
 import { Redirect, Stack, useLocalSearchParams } from 'expo-router'
-import { ORDERS } from '../../../../assets/orders';
+import { getMyOrder } from '../../api/api';
+import { format } from 'date-fns';
 
 const OrderDetails = () => {
-    const { slug } = useLocalSearchParams();
-    const order= ORDERS.find(order => order.slug === slug);
+    const { slug } = useLocalSearchParams<{slug: string}>();
+    const { data: order, error, isLoading} = getMyOrder(slug);
 
-    if (!order) return <Redirect href={`/404`} />
+    if(isLoading) return <ActivityIndicator />
+    if(error || !order) return <Text>Error: {error?.message}</Text>
+
+    const orderItems = order.order_items.map(item=> {
+        return {
+            id: item.id,
+            title: item.products.title,
+            heroImage: item.products.heroImage,
+            price: item.products.price,
+            quantity: item.quantity
+        }
+    } )
+
   return (
     <View style={styles.contianer}>
-        <Stack.Screen  options={{title: `${order.item}`}}/>
-      <Text style={styles.item}>{order.item}</Text>
-      <Text style={styles.details}>{order.details}</Text>
+        <Stack.Screen  options={{title: `${order.slug}`}}/>
+      <Text style={styles.item}>{order.slug}</Text>
+      <Text style={styles.details}>{order.description}</Text>
       <View style={[styles.statusBadge, styles[`status_${order.status}`]]}>
         <Text style={styles.statusText}>{order.status}</Text>
       </View>
-      <Text style={styles.date}>{order.date}</Text>
+      <Text style={styles.date}>{format(new Date(order.created_at), 'MM ddd, yyyy')}</Text>
       <Text style={styles.itemsTitle}>Item Ordered</Text>
       <FlatList
-        data={order.items}
+        data={orderItems}
         keyExtractor={item=> item.id.toString()}
         renderItem={({item})=>{
             return <View style={styles.orderItem}>
-                    <Image source={item.heroImage} style={styles.herImage} />
+                    <Image source={{uri: item.heroImage}} style={styles.herImage} />
                     <View style={styles.itemInfo}>
                         <Text style={styles.itemName}>{item.title}</Text>
                         <Text style={styles.itemPrice}>Price: ${item.price}</Text>
@@ -37,7 +50,7 @@ const OrderDetails = () => {
 
 export default OrderDetails
 
-const styles = StyleSheet.create({
+const styles: {[name: string]: any} = StyleSheet.create({
     contianer:{
         flex: 1,
         padding: 16,

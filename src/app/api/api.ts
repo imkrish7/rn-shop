@@ -1,6 +1,7 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "../../lib/supabase";
 import { useAuth } from "../../providers/auth-provider";
+import { generateOrderSlug } from "../../utils/utils";
 
 export const getProductsAndCategories = ()=>{
     return useQuery({
@@ -34,6 +35,8 @@ export const getProduct = (slug: string)=>{
         }
     })
 }
+
+
 
 export const getCategoryAndProducts = (categorySlug: string) => {
     return useQuery({
@@ -83,6 +86,43 @@ export const getMyOrders = ()=>{
   })
 }
 
+
+export const createOrder = () => {
+  const {
+    user: { id },
+  } = useAuth();
+
+  const slug = generateOrderSlug();
+
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    async mutationFn({ totalPrice }: { totalPrice: number }) {
+      const { data, error } = await supabase
+        .from('order')
+        .insert({
+          total_price: totalPrice,
+          slug,
+          user: id,
+          status: 'Pending',
+        })
+        .select('*')
+        .single();
+
+      if (error)
+        throw new Error(
+          'An error occurred while creating order: ' + error.message
+        );
+
+      return data;
+    },
+
+    async onSuccess() {
+      await queryClient.invalidateQueries({ queryKey: ['order'] });
+    },
+  });
+};
+
 export const createOrderItem = ()=>{
   return useMutation({
     async mutationFn(insertData: { 
@@ -108,8 +148,8 @@ export const createOrderItem = ()=>{
       },{} as Record<number, number>)
 
       await Promise.all(
-        Object.entries(productQuantities).map(([productId, totalQuantity])=>{
-          supabase.rpc('decrement_product_quantity', {
+        Object.entries(productQuantities).map(async ([productId, totalQuantity])=>{
+          await supabase.rpc('decrement_product_quantity', {
             product_id: Number(productId),
             quantity: totalQuantity
           })
@@ -124,3 +164,26 @@ export const createOrderItem = ()=>{
   })
 }
   
+
+export const getMyOrder = (slug: string)=>{
+  const {
+    user: {id}
+  } = useAuth();
+
+  return useQuery({
+    queryKey: ['order', slug],
+    queryFn: async()=>{
+      const { data, error} = await supabase.from('order')
+        .select('*, order_items:order_item(*, products:product(*))')
+        .eq('slug', slug)
+        .eq('user', id)
+        .single();
+      
+      if (error){
+        throw new Error('An error occured fetching orders:'+error.message)
+      }
+
+      return data;
+    }
+  })
+}

@@ -16,7 +16,8 @@ type CartState  = {
     incrementItem: (id: number)=> void,
     decrementItem: (id: number)=> void,
     getTotalPrice: ()=> string,
-    getItemCount: ()=> number
+    getItemCount: ()=> number,
+    resetCart: ()=> void,
 }
 
 const initialCartItem: CartItem[]= [];
@@ -65,5 +66,8 @@ export const useCartStore = create<CartState>((set, get)=> ({
         const { items } = get();
 
         return items.length;
+    },
+    resetCart: ()=>{
+        return initialCartItem;
     }
 }))
