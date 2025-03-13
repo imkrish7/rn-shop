@@ -1,6 +1,7 @@
 import { PropsWithChildren, useEffect, useRef, useState } from "react";
 import * as Notifications from 'expo-notifications';
 import { registerForPushNotificationsAsync } from "../lib/notifications";
+import { supabase } from "../lib/supabase";
 
 Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -17,9 +18,27 @@ export const NotificationProvider = ({children}: PropsWithChildren)=>{
   );
   const notificationListener = useRef<Notifications.EventSubscription>();
   const responseListener = useRef<Notifications.EventSubscription>();
+
+  const saveUserPushNotifications = async (token: string)=>{
+    if(!token.length) return;
+
+    const {
+      data: {session}
+    } = await supabase.auth.getSession();
+
+    if(!session) return;
+
+    await supabase.from('users').update({
+      expo_notifications: token,
+    }).eq('id', session.user.id)
+  }
+
     useEffect(() => {
         registerForPushNotificationsAsync()
-          .then(token => setExpoPushToken(token ?? ''))
+          .then(token => {
+            setExpoPushToken(token ?? '')
+            saveUserPushNotifications(token!);
+          })
           .catch((error: any) => setExpoPushToken(`${error}`));
     
         notificationListener.current = Notifications.addNotificationReceivedListener(notification => {
